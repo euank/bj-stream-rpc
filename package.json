@@ -1,0 +1,39 @@
+{
+  "name": "bj-stream-rpc",
+  "version": "0.1.0",
+  "description": "A bidirectional json-rpc 2.0 client/server implementation",
+  "main": "index.js",
+  "directories": {
+    "test": "test"
+  },
+  "dependencies": {
+    "duplex": "^1.0.0",
+    "json-stream": "^0.2.2",
+    "node-noop": "^0.0.1"
+  },
+  "devDependencies": {
+    "mocha": "^2.0.1",
+    "chai": "^1.9.2"
+  },
+  "scripts": {
+    "test": "mocha"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/euank/bj-stream-rpc.git"
+  },
+  "keywords": [
+    "json-rpc",
+    "jsonrpc",
+    "bidirectional",
+    "rpc",
+    "sockets",
+    "streams"
+  ],
+  "author": "euank",
+  "license": "ISC, Apache2.0, GPLv3 tri-license",
+  "bugs": {
+    "url": "https://github.com/euank/bj-stream-rpc/issues"
+  },
+  "homepage": "https://github.com/euank/bj-stream-rpc"
+}
