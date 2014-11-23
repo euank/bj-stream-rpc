@@ -8,6 +8,24 @@ var fs = require('fs');
 
 chai.config.includeStack = true
 
+
+// Utility function that takes two duplex streams and makes them feed into each other; this makes
+// them behave like e.g. independenct tcp socket connections, though with no delay of course.
+function connectPair(stream1, stream2) {
+	stream1.on('_data', function(chunk){
+		stream2._data(chunk);
+	});
+	stream1.on('_write', function(chunk){
+		stream2.write(chunk);
+	});
+	stream2.on('_data', function(chunk){
+		stream1._data(chunk);
+	});
+	stream2.on('_write', function(chunk){
+		stream1.write(chunk);
+	});
+}
+
 describe("StreamServer", function() {
 	it("should respond to a request", function(done) {
 		var stream = new Duplex();
@@ -26,6 +44,24 @@ describe("StreamServer", function() {
 
 		stream._data(JSON.stringify({jsonrpc: "2.0", method: "test", params: [], id: '1'}) + "\n");
 	});
+
+	it("should not respond to a notification", function(done) {
+		var stream = new Duplex();
+		var server = new StreamServer(stream, {
+			testNotification: function(arg1, arg2, nocallback) {
+				expect(arguments.length).to.equal(2);
+				setTimeout(function() { 
+					done(); // Give the other end time to make sure it doesn't get anything back
+				}, 10);
+			}
+		});
+
+		stream.once('_data', function(chunk) {
+			throw new Error("We shouldn't get a response: " + chunk.toString());
+		});
+
+		stream._data(JSON.stringify({jsonrpc: "2.0", method: "testNotification", params: [1,2]}) + "\n");
+	});
 });
 
 describe("StreamClient", function() {
@@ -35,12 +71,28 @@ describe("StreamClient", function() {
 
 		stream.once('_data', function(data) {
 			var request = JSON.parse(data);
+			expect(request.id).to.exist;
 			expect(request.method).to.equal("test");
 			expect(request.params).to.eql(["param"]);
 			done();
 		});
 
 		client.request("test", ['param'], function(err, response) {});
+	});
+
+	it("should write a notification", function(done) {
+		var stream = new Duplex();
+		var client = new StreamClient(stream);
+
+		stream.once('_data', function(data) {
+			var request = JSON.parse(data);
+			expect(request.id).not.to.exist;
+			expect(request.method).to.equal("test");
+			expect(request.params).to.eql(["param"]);
+			done();
+		});
+
+		client.notify("test", ['param']);
 	});
 });
 
@@ -49,19 +101,7 @@ describe("StreamClient and StreamServer", function() {
 		var clientstream = new Duplex();
 		var serverstream = new Duplex();
 
-		// Mock up the behavior of two sides of a bidirectional socket
-		serverstream.on('_data', function(chunk){
-			clientstream._data(chunk);
-		});
-		serverstream.on('_write', function(chunk){
-			clientstream.write(chunk);
-		});
-		clientstream.on('_data', function(chunk){
-			serverstream._data(chunk);
-		});
-		clientstream.on('_write', function(chunk){
-			serverstream.write(chunk);
-		});
+		connectPair(clientstream, serverstream)
 
 		var clientc = new StreamClient(clientstream);
 		var clients = new StreamServer(clientstream, {
