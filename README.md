@@ -64,8 +64,31 @@ clientStreamClient.request("serverFn", function(err, res) {
 	// res == "Client response"
 });
 ```
+## NamedStreamServer/Client
 
-### TODO add other client/server types here
+The named stream server/client pair implement a meta-protocol on top of JSON-RPC-2 which mandates that the client, on connecting, call the function "identify" with a name before calling any other server functions. This can be useful for being able to differentiate clients and thus communicate with a single one.
+
+Their usage is very similar to the StreamClient / StreamServer usage except that the Server has a `name` property and the Client's initialization function has an argument of name and version and takes a callback to be called once it is identifed.
+
+**Server**
+```javascript
+var serverFunctions = {
+	whoami: function(callback) {
+		callback(null, streamServer.name);
+	}
+};
+var streamServer = new bjrpc.NamedStreamServer(duplexStream, serverFunctions);
+```
+
+**Client**
+```javascript
+var streamClient = new bjrpc.NamedStreamClient(duplexStream, "John", "optional-v1.0", function(err) {
+	// Identified
+	streamClient.request("whoami", [], function(err, name) {
+		console.log("My name is " + name);
+	});
+});
+```
 
 ## Wire protocol
 

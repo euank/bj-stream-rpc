@@ -1,31 +1,3 @@
-var StreamServer = require("../").StreamServer;
-var StreamClient = require("../").StreamClient;
-var Duplex = require("duplex");
-var chai = require('chai');
-var expect = require('chai').expect;
-var net = require('net');
-var fs = require('fs');
-
-chai.config.includeStack = true
-
-
-// Utility function that takes two duplex streams and makes them feed into each other; this makes
-// them behave like e.g. independenct tcp socket connections, though with no delay of course.
-function connectPair(stream1, stream2) {
-	stream1.on('_data', function(chunk){
-		stream2._data(chunk);
-	});
-	stream1.on('_write', function(chunk){
-		stream2.write(chunk);
-	});
-	stream2.on('_data', function(chunk){
-		stream1._data(chunk);
-	});
-	stream2.on('_write', function(chunk){
-		stream1.write(chunk);
-	});
-}
-
 describe("StreamServer", function() {
 	it("should respond to a request", function(done) {
 		var stream = new Duplex();
@@ -50,7 +22,7 @@ describe("StreamServer", function() {
 		var server = new StreamServer(stream, {
 			testNotification: function(arg1, arg2, nocallback) {
 				expect(arguments.length).to.equal(2);
-				setTimeout(function() { 
+				setTimeout(function() {
 					done(); // Give the other end time to make sure it doesn't get anything back
 				}, 10);
 			}
@@ -101,7 +73,7 @@ describe("StreamClient and StreamServer", function() {
 		var clientstream = new Duplex();
 		var serverstream = new Duplex();
 
-		connectPair(clientstream, serverstream)
+		connectDuplexPair(clientstream, serverstream)
 
 		var clientc = new StreamClient(clientstream);
 		var clients = new StreamServer(clientstream, {
