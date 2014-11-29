@@ -10,6 +10,7 @@ global.fs = require('fs');
 var chai = require('chai');
 chai.config.includeStack = true
 global.expect = require('chai').expect;
+global.async = require('async');
 
 global.Duplex = require('duplex');
 
