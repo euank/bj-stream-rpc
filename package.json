@@ -10,7 +10,8 @@
     "async": "^0.9.0",
     "duplex": "^1.0.0",
     "json-stream": "^0.2.2",
-    "node-noop": "^0.0.1"
+    "node-noop": "^0.0.1",
+    "q": "^1.1.2"
   },
   "devDependencies": {
     "chai": "^1.9.2",

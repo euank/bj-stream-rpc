@@ -66,6 +66,7 @@ describe("StreamClient", function() {
 
 		client.notify("test", ['param']);
 	});
+
 });
 
 describe("StreamClient and StreamServer", function() {
@@ -105,6 +106,51 @@ describe("StreamClient and StreamServer", function() {
 			});
 		});
 	});
+
+	it('should support promises', function(done) {
+		var clientstream = new Duplex();
+		var serverstream = new Duplex();
+
+		connectDuplexPair(clientstream, serverstream)
+
+		var clientc = new StreamClient(clientstream);
+		var clients = new StreamServer(clientstream, {
+			clientsfn: function(arg) {
+				var deferred = Q.defer();
+				setTimeout(function(){
+					deferred.resolve("clientsfn called with " + arg);
+				}, 5);
+				return deferred.promise;
+			}
+		});
+
+		var serverc = new StreamClient(serverstream);
+		var servers = new StreamServer(serverstream, {
+			serversfn: function(arg) {
+				var deferred = Q.defer();
+				setTimeout(function(){
+					deferred.resolve("serversfn called with " + arg);
+				}, 5);
+				return deferred.promise;
+			}
+		});
+
+		serverc.request("clientsfn", ['param'])
+		.then(function(value) {
+			expect(value).to.equal("clientsfn called with param");
+		}).then(function() {
+			return serverc.request('clientsfn', ['param2']);
+		}).then(function(value) {
+			expect(value).to.equal('clientsfn called with param2');
+		}).then(function() {
+			return clientc.request('serversfn', ['cparam']);
+		}).then(function(value) {
+			expect(value).to.equal("serversfn called with cparam");
+		}).then(function() {
+			done();
+		});
+	});
+
 });
 
 describe("Streamclient/server over a unix socket", function() {

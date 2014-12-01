@@ -5,6 +5,7 @@
 // Common includes
 global.net = require('net');
 global.fs = require('fs');
+global.Q = require('q');
 
 
 var chai = require('chai');

@@ -27,10 +27,10 @@ describe("NamedTcpServer/Client", function() {
 			expect(err).not.to.be.ok;
 			async.map(results, function(client, callback) {
 				async.parallel([function(pcb) {
-					client.request('test1', ['alpha', 'beta'], function(err, res1, res2) {
+					client.request('test1', ['alpha', 'beta'], function(err, respArr) {
 						expect(err).not.to.be.ok;
-						expect(res1).to.equal("resparg1");
-						expect(res2).to.equal('test1 called with alpha and beta');
+						expect(respArr[0]).to.equal("resparg1");
+						expect(respArr[1]).to.equal('test1 called with alpha and beta');
 						pcb(null);
 					});
 				}, function(pcb) {

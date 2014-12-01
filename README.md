@@ -14,6 +14,8 @@ You may choose between multiple types of clients and servers. They are described
 
 The stream client and server each take a [Duplex stream](http://nodejs.org/api/stream.html#stream_class_stream_duplex).
 
+Please note that a callback should take exactly two arguments (error and result).
+
 **Server**
 
 ```javascript
