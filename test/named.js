@@ -16,6 +16,23 @@ describe("NamedStreamServer/Client", function() {
 		stream._data(JSON.stringify({jsonrpc: "2.0", method: "identify", params: ["John Jacob Jingleheimer Schmidt"], id: "testid"}) + "\n");
 	});
 
+	it("should error out if not named yet", function(done) {
+		var stream = new Duplex();
+		var server = new NamedStreamServer(stream, {
+			test: function(cb) {
+				cb(null, "test response");
+			}
+		});
+
+		stream.once('_data', function(data) {
+			var res = JSON.parse(data);
+			expect(res.error).to.be.ok;
+			done();
+		});
+
+		stream._data(JSON.stringify({jsonrpc: "2.0", method: "test", params: ["John Jacob Jingleheimer Schmidt"], id: "testid"}) + "\n");
+	});
+
 	it("Should work via NamedStreamClient", function(done) {
 		var sserver = new Duplex(),
 		    sclient = new Duplex();

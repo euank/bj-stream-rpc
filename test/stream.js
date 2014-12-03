@@ -132,6 +132,13 @@ describe("StreamClient and StreamServer", function() {
 					deferred.resolve("serversfn called with " + arg);
 				}, 5);
 				return deferred.promise;
+			},
+			serverserr: function(arg) {
+				var deferred = Q.defer();
+				setTimeout(function(){
+					deferred.reject("ERROR: " + arg);
+				}, 5);
+				return deferred.promise;
 			}
 		});
 
@@ -147,10 +154,12 @@ describe("StreamClient and StreamServer", function() {
 		}).then(function(value) {
 			expect(value).to.equal("serversfn called with cparam");
 		}).then(function() {
+			return clientc.request('serverserr', ['errarg']);
+		}).fail(function(err) {
+			expect(err.error).to.equal("ERROR: errarg");
 			done();
-		});
+		})
 	});
-
 });
 
 describe("Streamclient/server over a unix socket", function() {
