@@ -43,12 +43,38 @@ describe("NamedTcpServer/Client", function() {
 					expect(err).not.to.be.ok;
 					setTimeout(function() {
 						expect(notify1Calls).to.equal(5);
-						done();
+						server.close();
+						setTimeout(function() {
+							done();
+						}, 100);
 					}, 10);
 			});
 		});
 	});
+
 	it("should allow the server to behave as a client", function(done) {
-		done();
+		var server = new NamedTcpServer('127.0.0.1', 8688, {}, {}, function() {
+			async.map([1,2], function(num, callback) {
+				var client = new NamedTcpClient('127.0.0.1', 8688, "client"+num, "v1", {
+					clienttest: function(arg1, arg2, cb) {
+						cb(null,"client"+num, "test1 called with " + arg1 + " and " + arg2);
+					}
+				}, function() {
+					callback(null, client)
+				});
+			}, function(err, results) {
+				expect(err).not.to.be.ok;
+				server.map('clienttest', 1, 2, function(ign, results) {
+					expect(results.client1.error).not.to.be.ok;
+					expect(results.client1.result).to.eql(["client1", "test1 called with 1 and 2"]);
+					expect(results.client2.error).not.to.be.ok;
+					expect(results.client2.result).to.eql(["client2", "test1 called with 1 and 2"]);
+					server.close();
+					setTimeout(function() {
+						done();
+					}, 100);
+				});
+			});
+		});
 	});
 });
