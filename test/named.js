@@ -11,7 +11,7 @@ describe("NamedStreamServer/Client", function() {
 			// his name is my name too
 			expect(server.name).to.equal("John Jacob Jingleheimer Schmidt");
 			done()
-		}, 10);
+		}, 2);
 
 		stream._data(JSON.stringify({jsonrpc: "2.0", method: "identify", params: ["John Jacob Jingleheimer Schmidt"], id: "testid"}) + "\n");
 	});

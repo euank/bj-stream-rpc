@@ -44,9 +44,7 @@ describe("NamedTcpServer/Client", function() {
 					setTimeout(function() {
 						expect(notify1Calls).to.equal(5);
 						server.close();
-						setTimeout(function() {
-							done();
-						}, 100);
+						done();
 					}, 10);
 			});
 		});
@@ -70,9 +68,7 @@ describe("NamedTcpServer/Client", function() {
 					expect(results.client2.error).not.to.be.ok;
 					expect(results.client2.result).to.eql(["client2", "test1 called with 1 and 2"]);
 					server.close();
-					setTimeout(function() {
-						done();
-					}, 100);
+					done();
 				});
 			});
 		});
