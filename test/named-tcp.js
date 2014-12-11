@@ -73,4 +73,31 @@ describe("NamedTcpServer/Client", function() {
 			});
 		});
 	});
+
+	it("should allow the server to broadcast", function(done) {
+		var clientCheckin = {};
+
+		var promises = [Q.defer(), Q.defer()];
+		var server = new NamedTcpServer('127.0.0.1', 8688, {}, {}, function() {
+			async.map([0,1], function(num, callback) {
+				var client = new NamedTcpClient('127.0.0.1', 8688, "client"+num, "v1", {
+					clienttest: function(arg1, arg2) {
+						promises[num].resolve("called with " + arg1 + " and " + arg2);
+					}
+				}, function() {
+					callback(null, client)
+				});
+			}, function(err, results) {
+				expect(err).not.to.be.ok;
+				server.broadcast('clienttest', 1, 2);
+				var proms = promises.map(function(deferred) { return deferred.promise; });
+				Q.all(proms).then(function(results) {
+					expect(results.length).to.equal(2);
+					expect(results[0]).to.eql("called with 1 and 2");
+					done()
+				});
+			});
+		});
+
+	});
 });
