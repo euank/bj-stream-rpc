@@ -107,6 +107,36 @@ describe("StreamClient and StreamServer", function() {
 		});
 	});
 
+	it("Should understand a client disconnect", function(done) {
+		// Do this one over TCP since Duplex() doesn't handle end/fin the same way
+		// and realistically people want this over tcp for the most part
+		net.createServer(function(conn) {
+			var server = new StreamServer(conn, {test: function(cb) { cb(null, "Hello world"); }});
+		}).listen(38112, function(err) {
+			expect(err).not.to.be.ok;
+
+			var clientstream = net.connect({port: 38112}, function() {
+				var client = new StreamClient(clientstream);
+				client.request('test', [], function(err, resp) {
+					expect(err).not.to.be.ok;
+					expect(resp).to.equal("Hello world");
+					// Now disconnect and we shouldn't crash
+					clientstream.end();
+
+					var gotEnd = false;
+
+					client.on('end', function() {
+						client.request('test', [], function(err, resp){
+							expect(err).to.be.ok;
+							done();
+						});
+					});
+				});
+			});
+
+		});
+	});
+
 	it('should support promises', function(done) {
 		var clientstream = new Duplex();
 		var serverstream = new Duplex();

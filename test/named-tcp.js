@@ -75,8 +75,6 @@ describe("NamedTcpServer/Client", function() {
 	});
 
 	it("should allow the server to broadcast", function(done) {
-		var clientCheckin = {};
-
 		var promises = [Q.defer(), Q.defer()];
 		var server = new NamedTcpServer('127.0.0.1', 8688, {}, {}, function() {
 			async.map([0,1], function(num, callback) {
@@ -94,10 +92,64 @@ describe("NamedTcpServer/Client", function() {
 				Q.all(proms).then(function(results) {
 					expect(results.length).to.equal(2);
 					expect(results[0]).to.eql("called with 1 and 2");
+					server.close();
 					done()
 				});
 			});
 		});
 
 	});
+
+	it("Should understand client disconnects", function(done) {
+		var clientCalls = [0,0];
+		var promises = [Q.defer(), Q.defer()];
+		var server = new NamedTcpServer('127.0.0.1', 8688, {}, {}, function() {
+			async.map([0,1], function(num, callback) {
+				var client = new NamedTcpClient('127.0.0.1', 8688, "client"+num, "v1", {
+					clienttest: function() {
+						clientCalls[num]++;
+						promises[num].resolve();
+					}
+				}, function() {
+					callback(null, client)
+				});
+			}, function(err, clients) {
+				// We have a server with two clients, client0,client1 connected
+				expect(clients.length).to.equal(2);
+				expect(server.clients).to.have.keys(['client0', 'client1']);
+				expect(err).not.to.be.ok;
+
+				server.broadcast('clienttest');
+				var proms = promises.map(function(deferred) { return deferred.promise; });
+				Q.all(proms).then(function(results) {
+					expect(results.length).to.equal(2);
+					expect(clientCalls).to.eql([1,1]);
+					// Each client was called once
+
+					clients[1].close();
+					// Reset client0's promise. If client1's promise gets called after
+					// not being reset it throws an exception so that's a good way to
+					// make sure the test tests it doesn't get called
+					promises[0] = Q.defer();
+					// Wait for the close
+					setTimeout(function() {
+						expect(server.clients).to.have.keys(['client0']);
+						server.broadcast('clienttest');
+						// wait to be sure both were called so our clientCalls counts are accurate
+						setTimeout(function() {
+							proms = promises.map(function(deferred) { return deferred.promise; });
+							Q.all(proms).then(function(results) {
+								// Callback hell; that's how you know it's a good test.
+								expect(clientCalls).to.eql([2,1]);
+								expect(server.clients).to.have.keys(['client0']);
+								server.close();
+								done();
+							});
+						}, 5);
+					}, 5);
+				});
+			});
+		});
+	});
 });
+
