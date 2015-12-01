@@ -112,4 +112,9 @@ Contributions are very welcome!
 
 This library is multi-licensed under the GPLv3 or later, the ISC, or the Apache 2.0.
 
-You may pick any of these licenses and treat the code as if it is entirely under that license unless you with to contribute changes back, in which case you agree your changes are available under all three of the above licenses.
+You may pick any of these licenses and treat the code as if it is entirely
+under that license unless you wish to contribute changes back, in which case
+you agree your changes are available under all three of the above licenses.
+
+Because this licensing scheme is unusual (and partly for kicks and giggles), I
+recommend consulting your lawyer before use. I am not a (nor your) lawyer.

@@ -97,7 +97,6 @@ describe("NamedTcpServer/Client", function() {
 				});
 			});
 		});
-
 	});
 
 	it("Should understand client disconnects", function(done) {
@@ -111,7 +110,7 @@ describe("NamedTcpServer/Client", function() {
 						promises[num].resolve();
 					}
 				}, function() {
-					callback(null, client)
+					callback(null, client);
 				});
 			}, function(err, clients) {
 				// We have a server with two clients, client0,client1 connected
@@ -152,4 +151,3 @@ describe("NamedTcpServer/Client", function() {
 		});
 	});
 });
-
