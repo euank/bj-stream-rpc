@@ -34,6 +34,25 @@ describe("StreamServer", function() {
 
 		stream._data(JSON.stringify({jsonrpc: "2.0", method: "testNotification", params: [1,2]}) + "\n");
 	});
+
+	it("should work with dynamic resolution", done => {
+		var fnsResolved = [];
+		var fnResolver = function(fnName, cb) {
+			fnsResolved.push(fnName);
+			cb(null, respCb => respCb(null, "response"));
+		};
+		var stream = new Duplex();
+		var server = new StreamServer(stream, {}, fnResolver);
+
+		stream.once('_data', chunk => {
+			var res = JSON.parse(chunk);
+			expect(res.result).to.equal('response');
+			expect(fnsResolved).to.eql(["dynamicFn"]);
+			done();
+		});
+
+		stream._data(JSON.stringify({jsonrpc: "2.0", method: "dynamicFn", params: [], id: "1"}) + "\n");
+	});
 });
 
 describe("StreamClient", function() {
@@ -200,7 +219,7 @@ describe("StreamClient and StreamServer", function() {
 		}).fail(function(err) {
 			expect(err.error).to.equal("ERROR: errarg");
 			done();
-		})
+		});
 	});
 });
 
