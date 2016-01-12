@@ -150,4 +150,27 @@ describe("NamedTcpServer/Client", function() {
 			});
 		});
 	});
+
+	it('Should allow dynamic resolution', (done) => {
+		var calls = 0;
+		var fnResolver = (name, resolved) => {
+			if(name === "dynamicSuccess") resolved(null, (callback) => { calls++; callback(null); });
+			else if(name === "dynamicNotify") resolved(null, () => { calls++; });
+		};
+		var server = new NamedTcpServer('127.0.0.1', 8688, {}, {fnResolver: fnResolver}, () => {
+				var client = new NamedTcpClient('127.0.0.1', 8688, "client", "v1", {}, () => {
+					client.request("dynamicSuccess", [], (err) => {
+						expect(err).not.to.be.ok;
+						expect(calls).to.eql(1);
+
+						client.notify('dynamicNotify');
+						setTimeout(() => {
+							expect(calls).to.eql(2);
+							server.close();
+							done();
+						}, 5);
+					});
+				});
+		});
+	});
 });
