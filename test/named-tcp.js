@@ -74,6 +74,39 @@ describe("NamedTcpServer/Client", function() {
 		});
 	});
 
+
+	it("should handle map when nothing fulfills the request", function(done) {
+		var server = new NamedTcpServer('127.0.0.1', 8688, {}, {}, function() {
+			async.map([1,2], function(num, callback) {
+				var client = new NamedTcpClient('127.0.0.1', 8688, "client"+num, "v1", {
+					clienttest: function(arg1, arg2, cb) {
+						cb(null,"client"+num, "test1 called with " + arg1 + " and " + arg2);
+					}
+				}, function() {
+					callback(null, client)
+				});
+			}, function(err, results) {
+				expect(err).not.to.be.ok;
+				server.map('doesnotexist', 1, 2, function(ign, results) {
+					expect(results.client1.error).to.be.ok;
+					expect(results.client2.error).to.be.ok;
+					server.close();
+					done();
+				});
+			});
+		});
+	});
+
+	it("should handle map with no clients", function(done) {
+		var server = new NamedTcpServer('127.0.0.1', 8688, {}, {}, function() {
+			server.map('doesnotexist', 1, 2, function(ign, results) {
+				expect(results).to.eql({});
+				server.close();
+				done();
+			});
+		});
+	});
+
 	it("should allow the server to broadcast", function(done) {
 		var promises = [Q.defer(), Q.defer()];
 		var server = new NamedTcpServer('127.0.0.1', 8688, {}, {}, function() {
